@@ -2,6 +2,10 @@ import { useMemo, useRef, useState } from "react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import "./App.css";
+import { FaLinkedin } from "react-icons/fa";
+import { BsTelephoneInbound } from "react-icons/bs";
+import { AiOutlineMail } from "react-icons/ai";
+import { FaLocationDot } from "react-icons/fa6";
 
 type ExperienceEntry = {
   role: string;
@@ -34,6 +38,7 @@ const initialResume: ResumeData = {
   phone: "3337890626",
   city: "Guadalajara, Jal",
   linkedin: "www.linkedin.com/in/saint-vil-trosky-ray",
+
   objective:
     "Software Engineering student graduating in four months, with hands-on experience building web and software applications using Java, Python, JavaScript, TypeScript, React, Next.js, SQL, and PostgreSQL. Proactive and adaptable, with strong problem-solving skills and bilingual communication experience. Interested in full-stack and backend roles focused on scalable, practical, user-centered solutions.",
   degree: "Bachelor in Software Engineering\nComputer Science",
@@ -91,6 +96,17 @@ function App() {
   const resumeRef = useRef<HTMLDivElement>(null);
 
   const skillList = useMemo(() => splitLines(resume.skills), [resume.skills]);
+  const degreeLines = useMemo(() => splitLines(resume.degree), [resume.degree]);
+  const educationAddressLines = useMemo(
+    () => splitLines(resume.educationAddress),
+    [resume.educationAddress],
+  );
+  const educationTitle = degreeLines[0] ?? "";
+  const educationDetails = [
+    ...degreeLines.slice(1),
+    resume.school,
+    resume.educationPeriod,
+  ].filter((line) => line.trim().length > 0);
 
   const updateField = <K extends keyof ResumeData>(
     field: K,
@@ -405,22 +421,56 @@ function App() {
               <section>
                 <h3>Contact</h3>
                 <ul className="plain-list contact-list">
-                  <li>{resume.email}</li>
-                  <li>{resume.phone}</li>
-                  <li>{resume.city}</li>
-                  <li>{resume.linkedin}</li>
+                  <li className="contact-item">
+                    <span className="contact-text">{resume.email}</span>
+                    <AiOutlineMail
+                      className="contact-icon"
+                      aria-hidden="true"
+                    />
+                  </li>
+                  <li className="contact-item">
+                    <span className="contact-text">{resume.phone}</span>
+                    <BsTelephoneInbound
+                      className="contact-icon"
+                      aria-hidden="true"
+                    />
+                  </li>
+                  <li className="contact-item">
+                    <span className="contact-text">{resume.city}</span>
+                    <FaLocationDot
+                      className="contact-icon"
+                      aria-hidden="true"
+                    />
+                  </li>
+                  <li className="contact-item">
+                    <span className="contact-text">{resume.linkedin}</span>
+                    <FaLinkedin className="contact-icon" aria-hidden="true" />
+                  </li>
                 </ul>
               </section>
 
               <section>
                 <h3>Education</h3>
                 <div className="education-box">
-                  {splitLines(resume.degree).map((line) => (
-                    <p key={`degree-${line}`}>{line}</p>
+                  {educationTitle ? (
+                    <p className="education-title">{educationTitle}</p>
+                  ) : null}
+                  {educationDetails.map((line, index) => (
+                    <p
+                      className="education-info"
+                      key={`education-info-${index}`}
+                    >
+                      {line}
+                    </p>
                   ))}
-                  <p>{resume.school}</p>
-                  <p>{resume.educationPeriod}</p>
-                  <p>{resume.educationAddress}</p>
+                  {educationAddressLines.map((line, index) => (
+                    <p
+                      className="education-address"
+                      key={`education-address-${index}`}
+                    >
+                      {line}
+                    </p>
+                  ))}
                 </div>
               </section>
 
