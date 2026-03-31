@@ -1,0 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Source+Sans+3:wght@400;600;700&display=swap');
+
+:root {
+  font-family: 'Source Sans 3', sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: #1b2638;
+}
+
+#root {
+  min-height: 100vh;
+}
