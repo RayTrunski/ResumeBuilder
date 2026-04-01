@@ -1,8 +1,6 @@
-import { useMemo, useRef, useState } from "react";
-import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
-import { FaLinkedin } from "react-icons/fa";
+import { FaGithub, FaLinkedin } from "react-icons/fa";
 import { BsTelephoneInbound } from "react-icons/bs";
 import { AiOutlineMail } from "react-icons/ai";
 import { FaLocationDot } from "react-icons/fa6";
@@ -22,6 +20,7 @@ type ResumeData = {
   phone: string;
   city: string;
   linkedin: string;
+  github: string;
   objective: string;
   degree: string;
   school: string;
@@ -38,6 +37,7 @@ const initialResume: ResumeData = {
   phone: "3337890626",
   city: "Guadalajara, Jal",
   linkedin: "www.linkedin.com/in/saint-vil-trosky-ray",
+  github: "https://github.com/RayTrunski",
 
   objective:
     "Software Engineering student graduating in four months, with hands-on experience building web and software applications using Java, Python, JavaScript, TypeScript, React, Next.js, SQL, and PostgreSQL. Proactive and adaptable, with strong problem-solving skills and bilingual communication experience. Interested in full-stack and backend roles focused on scalable, practical, user-centered solutions.",
@@ -90,10 +90,97 @@ const createEmptyExperience = (): ExperienceEntry => ({
   highlights: "Add your first impact statement here.",
 });
 
+const createBlankResume = (): ResumeData => ({
+  name: "",
+  title: "",
+  email: "",
+  phone: "",
+  city: "",
+  linkedin: "",
+  github: "",
+  objective: "",
+  degree: "",
+  school: "",
+  educationPeriod: "",
+  educationAddress: "",
+  skills: "",
+  experiences: [createEmptyExperience()],
+});
+
+const DEFAULT_RESUME_ENDPOINT = "/api/default-resume";
+
+const cloneResume = (resume: ResumeData): ResumeData => ({
+  ...resume,
+  experiences: resume.experiences.map((entry) => ({ ...entry })),
+});
+
+const normalizeExperience = (
+  experience?: Partial<ExperienceEntry>,
+): ExperienceEntry => ({
+  ...createEmptyExperience(),
+  ...experience,
+});
+
+const normalizeResume = (resume?: Partial<ResumeData>): ResumeData => ({
+  ...createBlankResume(),
+  ...resume,
+  experiences:
+    resume?.experiences?.length
+      ? resume.experiences.map((entry) => normalizeExperience(entry))
+      : [createEmptyExperience()],
+});
+
+const getSafeResumeFileName = (name: string) =>
+  name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "") || "resume";
+
+const waitForNextPaint = () =>
+  new Promise<void>((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => resolve());
+    });
+  });
+
+const waitForPrintAssets = async (printDocument: Document) => {
+  const pendingImages = Array.from(printDocument.images).filter(
+    (image) => !image.complete,
+  );
+
+  await Promise.all(
+    pendingImages.map(
+      (image) =>
+        new Promise<void>((resolve) => {
+          image.addEventListener("load", () => resolve(), { once: true });
+          image.addEventListener("error", () => resolve(), { once: true });
+        }),
+    ),
+  );
+
+  if ("fonts" in printDocument) {
+    await printDocument.fonts.ready.catch(() => undefined);
+  }
+};
+
+const readErrorMessage = async (response: Response, fallbackMessage: string) => {
+  try {
+    const data = (await response.json()) as { error?: string };
+    return data.error || fallbackMessage;
+  } catch {
+    return fallbackMessage;
+  }
+};
+
 function App() {
-  const [resume, setResume] = useState<ResumeData>(initialResume);
+  const [resumes, setResumes] = useState<ResumeData[]>([
+    cloneResume(initialResume),
+  ]);
+  const [activeResumeIndex, setActiveResumeIndex] = useState(0);
   const [isExporting, setIsExporting] = useState(false);
+  const [isSavingDefault, setIsSavingDefault] = useState(false);
   const resumeRef = useRef<HTMLDivElement>(null);
+  const resume = resumes[activeResumeIndex] ?? initialResume;
 
   const skillList = useMemo(() => splitLines(resume.skills), [resume.skills]);
   const degreeLines = useMemo(() => splitLines(resume.degree), [resume.degree]);
@@ -108,22 +195,48 @@ function App() {
     resume.educationPeriod,
   ].filter((line) => line.trim().length > 0);
 
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadDefaultResume = async () => {
+      try {
+        const response = await fetch(DEFAULT_RESUME_ENDPOINT);
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = (await response.json()) as {
+          resume?: Partial<ResumeData> | null;
+        };
+
+        if (!data.resume || isCancelled) {
+          return;
+        }
+
+        setResumes((current) => [
+          normalizeResume(data.resume ?? undefined),
+          ...current.slice(1),
+        ]);
+      } catch (error) {
+        console.error("Unable to load the saved default resume.", error);
+      }
+    };
+
+    void loadDefaultResume();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
   const updateField = <K extends keyof ResumeData>(
     field: K,
     value: ResumeData[K],
   ) => {
-    setResume((current) => ({ ...current, [field]: value }));
-  };
-
-  const updateExperience = (
-    index: number,
-    field: keyof ExperienceEntry,
-    value: ExperienceEntry[keyof ExperienceEntry],
-  ) => {
-    setResume((current) => ({
-      ...current,
-      experiences: current.experiences.map((item, currentIndex) => {
-        if (currentIndex !== index) {
+    setResumes((current) =>
+      current.map((item, index) => {
+        if (index !== activeResumeIndex) {
           return item;
         }
 
@@ -132,32 +245,140 @@ function App() {
           [field]: value,
         };
       }),
-    }));
+    );
+  };
+
+  const updateExperience = (
+    index: number,
+    field: keyof ExperienceEntry,
+    value: ExperienceEntry[keyof ExperienceEntry],
+  ) => {
+    setResumes((current) =>
+      current.map((resumeItem, resumeIndex) => {
+        if (resumeIndex !== activeResumeIndex) {
+          return resumeItem;
+        }
+
+        return {
+          ...resumeItem,
+          experiences: resumeItem.experiences.map((item, currentIndex) => {
+            if (currentIndex !== index) {
+              return item;
+            }
+
+            return {
+              ...item,
+              [field]: value,
+            };
+          }),
+        };
+      }),
+    );
   };
 
   const addExperience = () => {
-    setResume((current) => ({
-      ...current,
-      experiences: [...current.experiences, createEmptyExperience()],
-    }));
+    setResumes((current) =>
+      current.map((resumeItem, index) => {
+        if (index !== activeResumeIndex) {
+          return resumeItem;
+        }
+
+        return {
+          ...resumeItem,
+          experiences: [...resumeItem.experiences, createEmptyExperience()],
+        };
+      }),
+    );
   };
 
   const removeExperience = (index: number) => {
-    setResume((current) => {
-      if (current.experiences.length <= 1) {
+    setResumes((current) =>
+      current.map((resumeItem, resumeIndex) => {
+        if (resumeIndex !== activeResumeIndex) {
+          return resumeItem;
+        }
+
+        if (resumeItem.experiences.length <= 1) {
+          return {
+            ...resumeItem,
+            experiences: [createEmptyExperience()],
+          };
+        }
+
         return {
-          ...current,
-          experiences: [createEmptyExperience()],
+          ...resumeItem,
+          experiences: resumeItem.experiences.filter(
+            (_, currentIndex) => currentIndex !== index,
+          ),
         };
+      }),
+    );
+  };
+
+  const createNewResume = () => {
+    setResumes((current) => {
+      const nextResumes = [...current, createBlankResume()];
+      setActiveResumeIndex(nextResumes.length - 1);
+      return nextResumes;
+    });
+  };
+
+  const deleteCurrentResume = () => {
+    if (activeResumeIndex === 0) {
+      return;
+    }
+
+    setResumes((current) =>
+      current.filter((_, index) => index !== activeResumeIndex),
+    );
+    setActiveResumeIndex((current) => (current > 0 ? current - 1 : 0));
+  };
+
+  const saveCurrentResumeAsDefault = async () => {
+    if (isSavingDefault) {
+      return;
+    }
+
+    const defaultResume = cloneResume(resume);
+
+    try {
+      setIsSavingDefault(true);
+
+      const response = await fetch(DEFAULT_RESUME_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          resume: defaultResume,
+        }),
+      });
+
+      if (!response.ok) {
+        const fallbackMessage =
+          response.status === 404
+            ? "The save endpoint is not active yet. Restart `npm run dev` and try again."
+            : `Failed to save default resume (${response.status}).`;
+        throw new Error(
+          await readErrorMessage(response, fallbackMessage),
+        );
       }
 
-      return {
-        ...current,
-        experiences: current.experiences.filter(
-          (_, currentIndex) => currentIndex !== index,
+      setResumes((current) =>
+        current.map((item, index) =>
+          index === 0 ? cloneResume(defaultResume) : item,
         ),
-      };
-    });
+      );
+    } catch (error) {
+      console.error("Unable to save the default resume.", error);
+      window.alert(
+        error instanceof Error
+          ? error.message
+          : "Could not save the default resume.",
+      );
+    } finally {
+      setIsSavingDefault(false);
+    }
   };
 
   const exportPdf = async () => {
@@ -165,41 +386,117 @@ function App() {
       return;
     }
 
+    let printFrame: HTMLIFrameElement | null = null;
+
     try {
       setIsExporting(true);
+      await waitForNextPaint();
 
-      const canvas = await html2canvas(resumeRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-      });
+      const safeName = getSafeResumeFileName(resume.name);
+      const printResumeMarkup = resumeRef.current.outerHTML.replace(
+        /\s+exporting\b/g,
+        "",
+      );
+      const stylesheetMarkup = Array.from(
+        document.querySelectorAll('style, link[rel="stylesheet"]'),
+      )
+        .map((node) => node.outerHTML)
+        .join("\n");
 
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = 210;
-      const pdfHeight = 297;
-      const imageWidth = pdfWidth;
-      const imageHeight = (canvas.height * imageWidth) / canvas.width;
+      printFrame = document.createElement("iframe");
+      printFrame.setAttribute("title", "Resume PDF export");
+      printFrame.setAttribute("aria-hidden", "true");
+      printFrame.style.position = "fixed";
+      printFrame.style.right = "0";
+      printFrame.style.bottom = "0";
+      printFrame.style.width = "0";
+      printFrame.style.height = "0";
+      printFrame.style.border = "0";
+      document.body.appendChild(printFrame);
 
-      let heightLeft = imageHeight;
-      let position = 0;
+      const printWindow = printFrame.contentWindow;
+      const printDocument = printFrame.contentDocument;
 
-      pdf.addImage(imgData, "PNG", 0, position, imageWidth, imageHeight);
-      heightLeft -= pdfHeight;
-
-      while (heightLeft > 0) {
-        position = heightLeft - imageHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imageWidth, imageHeight);
-        heightLeft -= pdfHeight;
+      if (!printWindow || !printDocument) {
+        throw new Error("Unable to open the print view.");
       }
 
-      const safeName = resume.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "");
-      pdf.save(`${safeName || "resume"}-resume.pdf`);
+      printDocument.open();
+      printDocument.write(`<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${safeName}-resume</title>
+    ${stylesheetMarkup}
+    <style>
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #ffffff;
+      }
+
+      body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .pdf-shell {
+        margin: 0 auto;
+        background: #ffffff;
+      }
+
+      .pdf-shell .resume-paper {
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="pdf-shell">
+      ${printResumeMarkup}
+    </div>
+  </body>
+</html>`);
+      printDocument.close();
+
+      await waitForPrintAssets(printDocument);
+
+      await new Promise<void>((resolve) => {
+        let settled = false;
+
+        const cleanup = () => {
+          if (settled) {
+            return;
+          }
+
+          settled = true;
+          printWindow.removeEventListener("afterprint", handleAfterPrint);
+          resolve();
+        };
+
+        const handleAfterPrint = () => {
+          cleanup();
+        };
+
+        printWindow.addEventListener("afterprint", handleAfterPrint);
+
+        setTimeout(() => {
+          printWindow.focus();
+          printWindow.print();
+        }, 150);
+
+        setTimeout(() => {
+          cleanup();
+        }, 60000);
+      });
     } finally {
+      printFrame?.remove();
       setIsExporting(false);
     }
   };
@@ -208,6 +505,45 @@ function App() {
     <div className="builder-page">
       <aside className="editor-panel">
         <h1>Resume Builder</h1>
+        <div className="resume-actions">
+          <button
+            className="new-resume-button"
+            type="button"
+            onClick={createNewResume}
+          >
+            + New Resume
+          </button>
+
+          <button
+            className="delete-resume-button"
+            type="button"
+            onClick={deleteCurrentResume}
+            disabled={activeResumeIndex === 0}
+            title={
+              activeResumeIndex === 0
+                ? "Resume 1 is protected and cannot be deleted"
+                : "Delete this resume"
+            }
+          >
+            - Delete Resume
+          </button>
+
+          <label className="resume-page-selector">
+            Resume Page
+            <select
+              value={activeResumeIndex}
+              onChange={(event) =>
+                setActiveResumeIndex(Number(event.target.value))
+              }
+            >
+              {resumes.map((_, index) => (
+                <option key={`resume-option-${index}`} value={index}>
+                  Resume {index + 1}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
         <p className="panel-subtitle">
           Edit your details and export the resume as a PDF.
         </p>
@@ -261,6 +597,14 @@ function App() {
             />
           </label>
 
+          <label>
+            GitHub URL
+            <input
+              value={resume.github}
+              onChange={(event) => updateField("github", event.target.value)}
+            />
+          </label>
+
           <label className="span-2">
             Career objective
             <textarea
@@ -288,7 +632,7 @@ function App() {
             />
           </label>
 
-          <label>
+          <label className="span-2">
             Education period
             <input
               value={resume.educationPeriod}
@@ -401,16 +745,28 @@ function App() {
         </section>
 
         <button
+          className="save-default-button"
+          type="button"
+          onClick={() => void saveCurrentResumeAsDefault()}
+          disabled={isSavingDefault}
+        >
+          {isSavingDefault ? "Saving Default..." : "Save To Default"}
+        </button>
+
+        <button
           className="export-button"
           onClick={exportPdf}
           disabled={isExporting}
         >
-          {isExporting ? "Exporting PDF..." : "Export Resume PDF"}
+          {isExporting ? "Preparing PDF..." : "Print / Save Resume PDF"}
         </button>
       </aside>
 
       <main className="preview-stage">
-        <div className="resume-paper" ref={resumeRef}>
+        <div
+          className={`resume-paper ${isExporting ? "exporting" : ""}`.trim()}
+          ref={resumeRef}
+        >
           <header className="resume-header">
             <div className="name-box">{resume.name}</div>
             <p className="title-text">{resume.title}</p>
@@ -446,6 +802,12 @@ function App() {
                     <span className="contact-text">{resume.linkedin}</span>
                     <FaLinkedin className="contact-icon" aria-hidden="true" />
                   </li>
+                  {resume.github.trim() ? (
+                    <li className="contact-item">
+                      <span className="contact-text">{resume.github}</span>
+                      <FaGithub className="contact-icon" aria-hidden="true" />
+                    </li>
+                  ) : null}
                 </ul>
               </section>
 
