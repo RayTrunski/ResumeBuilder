@@ -5,11 +5,20 @@ import { defineConfig, type Connect, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 
 const DEFAULT_RESUME_ROUTE = "/api/default-resume";
-const DEFAULT_RESUME_FILE = path.resolve(
-  __dirname,
-  "saved_info",
-  "default-resume.json",
-);
+const DEFAULT_RESUME_FILES = {
+  en: path.resolve(__dirname, "saved_info", "default-resume.json"),
+  es: path.resolve(
+    __dirname,
+    "saved_info",
+    "curriculum-por-defecto-espanol.json",
+  ),
+} as const;
+
+const normalizeTemplateLanguage = (language?: string) =>
+  language === "es" ? "es" : "en";
+
+const getDefaultResumeFile = (language?: string) =>
+  DEFAULT_RESUME_FILES[normalizeTemplateLanguage(language)];
 
 const getResumeSlug = (resume: unknown) => {
   if (
@@ -69,10 +78,26 @@ const defaultResumePlugin = (): Plugin => {
       return;
     }
 
+    const requestUrl = new URL(req.url, "http://localhost");
+    const templateLanguage = normalizeTemplateLanguage(
+      requestUrl.searchParams.get("language") ?? undefined,
+    );
+    const defaultResumeFile = getDefaultResumeFile(templateLanguage);
+
     if (req.method === "GET") {
       try {
-        const raw = await fs.readFile(DEFAULT_RESUME_FILE, "utf8");
-        sendJson(res, 200, { resume: JSON.parse(raw) });
+        const raw = await fs.readFile(defaultResumeFile, "utf8");
+        const resume = JSON.parse(raw) as Record<string, unknown> | null;
+
+        sendJson(res, 200, {
+          resume:
+            resume && typeof resume === "object"
+              ? {
+                  templateLanguage,
+                  ...resume,
+                }
+              : resume,
+        });
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code === "ENOENT") {
           sendJson(res, 200, { resume: null });
@@ -93,9 +118,9 @@ const defaultResumePlugin = (): Plugin => {
         const payload = JSON.parse(rawBody) as { resume?: unknown };
         const namedResumeFile = getNamedResumeFile(payload.resume);
 
-        await fs.mkdir(path.dirname(DEFAULT_RESUME_FILE), { recursive: true });
+        await fs.mkdir(path.dirname(defaultResumeFile), { recursive: true });
         await fs.writeFile(
-          DEFAULT_RESUME_FILE,
+          defaultResumeFile,
           JSON.stringify(payload.resume ?? null, null, 2),
           "utf8",
         );

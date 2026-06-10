@@ -1,0 +1,38 @@
+{
+"name": "TROTSKY RAY SAINT VIL",
+"title": "Ingeniero de software aspirante",
+"email": "saintviltrotskyray@gmail.com",
+"phone": "3337890626",
+"city": "Guadalajara, Jal",
+"linkedin": "www.linkedin.com/in/saint-vil-trosky-ray",
+"github": "https://github.com/RayTrunski",
+"objective": "Estudiante de Ingeniería de Software próximo a graduarse, con experiencia práctica en desarrollo web y de software utilizando Java, Python, JavaScript, TypeScript, React, Next.js, SQL y PostgreSQL. Proactivo y adaptable, con sólidas habilidades para la resolución de problemas, comunicación bilingüe y trabajo en equipo. Interesado en oportunidades de desarrollo Front-End, Web, Full-Stack y Back-End orientadas a la creación de soluciones escalables, funcionales y centradas en el usuario.",
+"degree": "Licenciatura en Ingeniería de Software\n",
+"school": "Universidad Enrique \nDíaz de León",
+"educationPeriod": "Sep 2022 – Jul 2026 (Estimado)",
+"educationAddress": "Av. Enrique Díaz de León 90 Col. Americana, Guadalajara Jal.",
+"skills": "JavaScript\nTypeScript\nSQL\nPostgreSQL\nPython\nJava\nReact\nNext.js\nNode.js\nTailwind CSS\nGitHub\nGitLab",
+"experiences": [
+{
+"role": "Practicante de Ingeniería de Software",
+"company": "Secretaría de Seguridad",
+"location": "Guadalajara, Jal.",
+"period": "Noviembre 2025 – Actualidad",
+"highlights": "Mejoré módulos web e integraciones con bases de datos mediante la optimización de consultas SQL, creación de vistas e implementación de correcciones que incrementaron la precisión en la recuperación de información y la confiabilidad general del sistema.\nContribuí al desarrollo de una plataforma basada en React y Next.js que automatizó la búsqueda y recuperación de información, logrando mejoras significativas en los procesos.\nColaboré con un equipo de 4 personas para reemplazar un flujo de trabajo manual por una solución web, reduciendo el tiempo de generación de reportes de 15–30 minutos a menos de 5 minutos.\nApoyé la transición de búsquedas manuales en bases de datos hacia una plataforma automatizada basada en Next.js, React y SQL, mejorando la recuperación de información, la trazabilidad de accesos y la accesibilidad sobre más de 30,000 registros."
+},
+{
+"role": "Desarrollador Full-Stack – Proyecto Académico ReCyClapp",
+"company": "UNEDL",
+"location": "Guadalajara, Jal.",
+"period": "Marzo 2025 – Actualidad",
+"highlights": "Contribuí al desarrollo de una plataforma web enfocada en procesos de reciclaje, reparación y donación de muebles y electrodomésticos utilizando Next.js, React y operaciones CRUD.\nDesarrollé funcionalidades CRUD esenciales y participé en la planificación de características, contribuyendo a mejorar la gestión de información y la usabilidad de la plataforma.\nParticipé en la planeación del sistema, organización de funcionalidades y documentación técnica de la plataforma ReCyClapp dentro de un proyecto terminal desarrollado por un equipo de 2 integrantes, ayudando a definir módulos, organizar tareas de desarrollo y mejorar la coordinación durante la implementación."
+},
+{
+"role": "Representante Bilingüe de Soporte Técnico",
+"company": "Teleperformance",
+"location": "Guadalajara, Jal.",
+"period": "Mayo 2023 – Noviembre 2023",
+"highlights": "Brindé soporte al cliente en inglés y español, asistiendo a usuarios con problemas de conectividad a internet mediante la identificación de causas raíz, explicación clara de soluciones y guía durante procesos de diagnóstico y resolución.\nDocumenté detalles técnicos relevantes y escalé casos a un equipo de soporte de 10 personas, contribuyendo a mantener la calidad de respuesta y tiempos de atención de entre 15 y 25 minutos.\nFortalecí habilidades de comunicación, adaptabilidad y resolución de problemas al brindar soporte a clientes con incidencias de conectividad, interrupciones de servicio, conexiones lentas y orientación técnica en un entorno dinámico de atención al cliente."
+}
+]
+}

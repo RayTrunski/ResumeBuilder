@@ -5,6 +5,8 @@ import { BsTelephoneInbound } from "react-icons/bs";
 import { AiOutlineMail } from "react-icons/ai";
 import { FaLocationDot } from "react-icons/fa6";
 
+type TemplateLanguage = "en" | "es";
+
 type ExperienceEntry = {
   role: string;
   company: string;
@@ -14,6 +16,7 @@ type ExperienceEntry = {
 };
 
 type ResumeData = {
+  templateLanguage: TemplateLanguage;
   name: string;
   title: string;
   email: string;
@@ -30,7 +33,156 @@ type ResumeData = {
   experiences: ExperienceEntry[];
 };
 
+type TemplateCopy = {
+  appTitle: string;
+  newResume: string;
+  deleteResume: string;
+  protectedResumeTooltip: string;
+  deleteResumeTooltip: string;
+  resumePage: string;
+  panelSubtitle: string;
+  templateLanguage: string;
+  name: string;
+  professionalTitle: string;
+  email: string;
+  phone: string;
+  city: string;
+  linkedinUrl: string;
+  githubUrl: string;
+  careerObjective: string;
+  degree: string;
+  school: string;
+  educationPeriod: string;
+  educationAddress: string;
+  skills: string;
+  skillsHeading: string;
+  workExperience: string;
+  addSection: string;
+  section: string;
+  remove: string;
+  role: string;
+  company: string;
+  location: string;
+  period: string;
+  highlights: string;
+  saveDefault: string;
+  savingDefault: string;
+  exportPdf: string;
+  preparingPdf: string;
+  contact: string;
+  education: string;
+  languageOptions: Record<TemplateLanguage, string>;
+  saveEndpointMissing: string;
+  saveFailed: (status: number) => string;
+  saveError: string;
+  readDefaultResumeError: string;
+  saveDefaultResumeError: string;
+};
+
+const templateCopy: Record<TemplateLanguage, TemplateCopy> = {
+  en: {
+    appTitle: "Resume Builder",
+    newResume: "+ New Resume",
+    deleteResume: "- Delete Resume",
+    protectedResumeTooltip: "Resume 1 is protected and cannot be deleted",
+    deleteResumeTooltip: "Delete this resume",
+    resumePage: "Resume Page",
+    panelSubtitle: "Edit your details and export the resume as a PDF.",
+    templateLanguage: "Template language",
+    name: "Name",
+    professionalTitle: "Professional title",
+    email: "Email",
+    phone: "Phone",
+    city: "City",
+    linkedinUrl: "LinkedIn URL",
+    githubUrl: "GitHub URL",
+    careerObjective: "Career objective",
+    degree: "Degree (line break with Enter)",
+    school: "School",
+    educationPeriod: "Education period",
+    educationAddress: "Education address",
+    skills: "Skills (one per line)",
+    skillsHeading: "Skills",
+    workExperience: "Work Experience",
+    addSection: "+ Add Section",
+    section: "Section",
+    remove: "- Remove",
+    role: "Role",
+    company: "Company",
+    location: "Location",
+    period: "Period",
+    highlights: "Highlights (one bullet per line)",
+    saveDefault: "Save To Default",
+    savingDefault: "Saving Default...",
+    exportPdf: "Print / Save Resume PDF",
+    preparingPdf: "Preparing PDF...",
+    contact: "Contact",
+    education: "Education",
+    languageOptions: {
+      en: "English",
+      es: "Spanish",
+    },
+    saveEndpointMissing:
+      "The save endpoint is not active yet. Restart `npm run dev` and try again.",
+    saveFailed: (status) => `Failed to save default resume (${status}).`,
+    saveError: "Could not save the default resume.",
+    readDefaultResumeError: "Unable to load the saved default resume.",
+    saveDefaultResumeError: "Unable to save the default resume.",
+  },
+  es: {
+    appTitle: "Creador de CV",
+    newResume: "+ Nuevo CV",
+    deleteResume: "- Eliminar CV",
+    protectedResumeTooltip: "El CV 1 esta protegido y no se puede eliminar",
+    deleteResumeTooltip: "Eliminar este CV",
+    resumePage: "Pagina del CV",
+    panelSubtitle: "Edita tu informacion y exporta el CV como PDF.",
+    templateLanguage: "Idioma de la plantilla",
+    name: "Nombre",
+    professionalTitle: "Titulo profesional",
+    email: "Correo",
+    phone: "Telefono",
+    city: "Ciudad",
+    linkedinUrl: "URL de LinkedIn",
+    githubUrl: "URL de GitHub",
+    careerObjective: "Perfil profesional",
+    degree: "Titulo academico (salto de linea con Enter)",
+    school: "Institucion",
+    educationPeriod: "Periodo educativo",
+    educationAddress: "Direccion educativa",
+    skills: "Habilidades (una por linea)",
+    skillsHeading: "Habilidades",
+    workExperience: "Experiencia laboral",
+    addSection: "+ Agregar seccion",
+    section: "Seccion",
+    remove: "- Quitar",
+    role: "Puesto",
+    company: "Empresa",
+    location: "Ubicacion",
+    period: "Periodo",
+    highlights: "Logros (un punto por linea)",
+    saveDefault: "Guardar como predeterminado",
+    savingDefault: "Guardando predeterminado...",
+    exportPdf: "Imprimir / Guardar CV en PDF",
+    preparingPdf: "Preparando PDF...",
+    contact: "Contacto",
+    education: "Educacion",
+    languageOptions: {
+      en: "Ingles",
+      es: "Espanol",
+    },
+    saveEndpointMissing:
+      "El endpoint de guardado aun no esta activo. Reinicia `npm run dev` e intentalo de nuevo.",
+    saveFailed: (status) =>
+      `No se pudo guardar el CV predeterminado (${status}).`,
+    saveError: "No se pudo guardar el CV predeterminado.",
+    readDefaultResumeError: "No se pudo cargar el CV predeterminado guardado.",
+    saveDefaultResumeError: "No se pudo guardar el CV predeterminado.",
+  },
+};
+
 const initialResume: ResumeData = {
+  templateLanguage: "en",
   name: "TROTSKY RAY SAINT VIL",
   title: "Software Engineer",
   email: "saintviltrotskyray@gmail.com",
@@ -82,15 +234,29 @@ const splitLines = (value: string) =>
     .map((item) => item.trim())
     .filter(Boolean);
 
-const createEmptyExperience = (): ExperienceEntry => ({
-  role: "New Role",
-  company: "Company Name",
-  location: "City, State",
-  period: "Month Year - Month Year",
-  highlights: "Add your first impact statement here.",
-});
+const createEmptyExperience = (
+  language: TemplateLanguage = "en",
+): ExperienceEntry =>
+  language === "es"
+    ? {
+        role: "Nuevo puesto",
+        company: "Nombre de la empresa",
+        location: "Ciudad, Estado",
+        period: "Mes Anio - Mes Anio",
+        highlights: "Agrega aqui tu primer logro o impacto.",
+      }
+    : {
+        role: "New Role",
+        company: "Company Name",
+        location: "City, State",
+        period: "Month Year - Month Year",
+        highlights: "Add your first impact statement here.",
+      };
 
-const createBlankResume = (): ResumeData => ({
+const createBlankResume = (
+  language: TemplateLanguage = "en",
+): ResumeData => ({
+  templateLanguage: language,
   name: "",
   title: "",
   email: "",
@@ -104,31 +270,45 @@ const createBlankResume = (): ResumeData => ({
   educationPeriod: "",
   educationAddress: "",
   skills: "",
-  experiences: [createEmptyExperience()],
+  experiences: [createEmptyExperience(language)],
 });
 
 const DEFAULT_RESUME_ENDPOINT = "/api/default-resume";
+const getDefaultResumeEndpoint = (language: TemplateLanguage) =>
+  `${DEFAULT_RESUME_ENDPOINT}?language=${language}`;
 
 const cloneResume = (resume: ResumeData): ResumeData => ({
   ...resume,
   experiences: resume.experiences.map((entry) => ({ ...entry })),
 });
 
+const normalizeTemplateLanguage = (
+  language?: string,
+): TemplateLanguage => (language === "es" ? "es" : "en");
+
 const normalizeExperience = (
   experience?: Partial<ExperienceEntry>,
+  language: TemplateLanguage = "en",
 ): ExperienceEntry => ({
-  ...createEmptyExperience(),
+  ...createEmptyExperience(language),
   ...experience,
 });
 
-const normalizeResume = (resume?: Partial<ResumeData>): ResumeData => ({
-  ...createBlankResume(),
-  ...resume,
-  experiences:
-    resume?.experiences?.length
-      ? resume.experiences.map((entry) => normalizeExperience(entry))
-      : [createEmptyExperience()],
-});
+const normalizeResume = (resume?: Partial<ResumeData>): ResumeData => {
+  const templateLanguage = normalizeTemplateLanguage(resume?.templateLanguage);
+
+  return {
+    ...createBlankResume(templateLanguage),
+    ...resume,
+    templateLanguage,
+    experiences:
+      resume?.experiences?.length
+        ? resume.experiences.map((entry) =>
+            normalizeExperience(entry, templateLanguage),
+          )
+        : [createEmptyExperience(templateLanguage)],
+  };
+};
 
 const getSafeResumeFileName = (name: string) =>
   name
@@ -181,6 +361,7 @@ function App() {
   const [isSavingDefault, setIsSavingDefault] = useState(false);
   const resumeRef = useRef<HTMLDivElement>(null);
   const resume = resumes[activeResumeIndex] ?? initialResume;
+  const copy = templateCopy[resume.templateLanguage];
 
   const skillList = useMemo(() => splitLines(resume.skills), [resume.skills]);
   const degreeLines = useMemo(() => splitLines(resume.degree), [resume.degree]);
@@ -195,12 +376,59 @@ function App() {
     resume.educationPeriod,
   ].filter((line) => line.trim().length > 0);
 
+  const replaceResumeAtIndex = (
+    resumeIndex: number,
+    nextResume: ResumeData,
+  ) => {
+    setResumes((current) =>
+      current.map((item, index) =>
+        index === resumeIndex ? cloneResume(nextResume) : item,
+      ),
+    );
+  };
+
+  const loadDefaultResume = async (
+    language: TemplateLanguage,
+    resumeIndex: number,
+  ) => {
+    try {
+      const response = await fetch(getDefaultResumeEndpoint(language));
+
+      if (!response.ok) {
+        return false;
+      }
+
+      const data = (await response.json()) as {
+        resume?: Partial<ResumeData> | null;
+      };
+
+      if (!data.resume) {
+        return false;
+      }
+
+      replaceResumeAtIndex(
+        resumeIndex,
+        normalizeResume({
+          ...data.resume,
+          templateLanguage: language,
+        }),
+      );
+
+      return true;
+    } catch (error) {
+      console.error("Unable to load the saved default resume.", error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     let isCancelled = false;
 
-    const loadDefaultResume = async () => {
+    const loadInitialResume = async () => {
       try {
-        const response = await fetch(DEFAULT_RESUME_ENDPOINT);
+        const response = await fetch(
+          getDefaultResumeEndpoint(initialResume.templateLanguage),
+        );
 
         if (!response.ok) {
           return;
@@ -215,7 +443,10 @@ function App() {
         }
 
         setResumes((current) => [
-          normalizeResume(data.resume ?? undefined),
+          normalizeResume({
+            ...data.resume,
+            templateLanguage: initialResume.templateLanguage,
+          }),
           ...current.slice(1),
         ]);
       } catch (error) {
@@ -223,12 +454,26 @@ function App() {
       }
     };
 
-    void loadDefaultResume();
+    void loadInitialResume();
 
     return () => {
       isCancelled = true;
     };
   }, []);
+
+  const handleTemplateLanguageChange = async (nextLanguage: TemplateLanguage) => {
+    if (nextLanguage === resume.templateLanguage) {
+      return;
+    }
+
+    const didLoad = await loadDefaultResume(nextLanguage, activeResumeIndex);
+
+    if (didLoad) {
+      return;
+    }
+
+    updateField("templateLanguage", nextLanguage);
+  };
 
   const updateField = <K extends keyof ResumeData>(
     field: K,
@@ -285,7 +530,10 @@ function App() {
 
         return {
           ...resumeItem,
-          experiences: [...resumeItem.experiences, createEmptyExperience()],
+          experiences: [
+            ...resumeItem.experiences,
+            createEmptyExperience(resumeItem.templateLanguage),
+          ],
         };
       }),
     );
@@ -301,7 +549,7 @@ function App() {
         if (resumeItem.experiences.length <= 1) {
           return {
             ...resumeItem,
-            experiences: [createEmptyExperience()],
+            experiences: [createEmptyExperience(resumeItem.templateLanguage)],
           };
         }
 
@@ -317,7 +565,12 @@ function App() {
 
   const createNewResume = () => {
     setResumes((current) => {
-      const nextResumes = [...current, createBlankResume()];
+      const activeResume =
+        current[activeResumeIndex] ?? current[0] ?? initialResume;
+      const nextResumes = [
+        ...current,
+        createBlankResume(activeResume.templateLanguage),
+      ];
       setActiveResumeIndex(nextResumes.length - 1);
       return nextResumes;
     });
@@ -344,7 +597,9 @@ function App() {
     try {
       setIsSavingDefault(true);
 
-      const response = await fetch(DEFAULT_RESUME_ENDPOINT, {
+      const response = await fetch(
+        getDefaultResumeEndpoint(resume.templateLanguage),
+        {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -352,13 +607,14 @@ function App() {
         body: JSON.stringify({
           resume: defaultResume,
         }),
-      });
+        },
+      );
 
       if (!response.ok) {
         const fallbackMessage =
           response.status === 404
-            ? "The save endpoint is not active yet. Restart `npm run dev` and try again."
-            : `Failed to save default resume (${response.status}).`;
+            ? copy.saveEndpointMissing
+            : copy.saveFailed(response.status);
         throw new Error(
           await readErrorMessage(response, fallbackMessage),
         );
@@ -370,11 +626,11 @@ function App() {
         ),
       );
     } catch (error) {
-      console.error("Unable to save the default resume.", error);
+      console.error(copy.saveDefaultResumeError, error);
       window.alert(
         error instanceof Error
           ? error.message
-          : "Could not save the default resume.",
+          : copy.saveError,
       );
     } finally {
       setIsSavingDefault(false);
@@ -423,7 +679,7 @@ function App() {
 
       printDocument.open();
       printDocument.write(`<!DOCTYPE html>
-<html lang="en">
+<html lang="${resume.templateLanguage}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -431,7 +687,7 @@ function App() {
     ${stylesheetMarkup}
     <style>
       @page {
-        size: A4 portrait;
+        size: 8.5in 11in;
         margin: 0;
       }
 
@@ -504,14 +760,14 @@ function App() {
   return (
     <div className="builder-page">
       <aside className="editor-panel">
-        <h1>Resume Builder</h1>
+        <h1>{copy.appTitle}</h1>
         <div className="resume-actions">
           <button
             className="new-resume-button"
             type="button"
             onClick={createNewResume}
           >
-            + New Resume
+            {copy.newResume}
           </button>
 
           <button
@@ -521,15 +777,15 @@ function App() {
             disabled={activeResumeIndex === 0}
             title={
               activeResumeIndex === 0
-                ? "Resume 1 is protected and cannot be deleted"
-                : "Delete this resume"
+                ? copy.protectedResumeTooltip
+                : copy.deleteResumeTooltip
             }
           >
-            - Delete Resume
+            {copy.deleteResume}
           </button>
 
           <label className="resume-page-selector">
-            Resume Page
+            {copy.resumePage}
             <select
               value={activeResumeIndex}
               onChange={(event) =>
@@ -538,19 +794,37 @@ function App() {
             >
               {resumes.map((_, index) => (
                 <option key={`resume-option-${index}`} value={index}>
-                  Resume {index + 1}
+                  {copy.resumePage} {index + 1}
                 </option>
               ))}
             </select>
           </label>
         </div>
         <p className="panel-subtitle">
-          Edit your details and export the resume as a PDF.
+          {copy.panelSubtitle}
         </p>
 
         <div className="field-grid">
           <label>
-            Name
+            {copy.templateLanguage}
+            <select
+              value={resume.templateLanguage}
+              onChange={(event) =>
+                void handleTemplateLanguageChange(
+                  normalizeTemplateLanguage(event.target.value),
+                )
+              }
+            >
+              {(["es", "en"] as TemplateLanguage[]).map((language) => (
+                <option key={language} value={language}>
+                  {copy.languageOptions[language]}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            {copy.name}
             <input
               value={resume.name}
               onChange={(event) => updateField("name", event.target.value)}
@@ -558,7 +832,7 @@ function App() {
           </label>
 
           <label>
-            Professional title
+            {copy.professionalTitle}
             <input
               value={resume.title}
               onChange={(event) => updateField("title", event.target.value)}
@@ -566,7 +840,7 @@ function App() {
           </label>
 
           <label>
-            Email
+            {copy.email}
             <input
               value={resume.email}
               onChange={(event) => updateField("email", event.target.value)}
@@ -574,7 +848,7 @@ function App() {
           </label>
 
           <label>
-            Phone
+            {copy.phone}
             <input
               value={resume.phone}
               onChange={(event) => updateField("phone", event.target.value)}
@@ -582,7 +856,7 @@ function App() {
           </label>
 
           <label>
-            City
+            {copy.city}
             <input
               value={resume.city}
               onChange={(event) => updateField("city", event.target.value)}
@@ -590,7 +864,7 @@ function App() {
           </label>
 
           <label>
-            LinkedIn URL
+            {copy.linkedinUrl}
             <input
               value={resume.linkedin}
               onChange={(event) => updateField("linkedin", event.target.value)}
@@ -598,7 +872,7 @@ function App() {
           </label>
 
           <label>
-            GitHub URL
+            {copy.githubUrl}
             <input
               value={resume.github}
               onChange={(event) => updateField("github", event.target.value)}
@@ -606,7 +880,7 @@ function App() {
           </label>
 
           <label className="span-2">
-            Career objective
+            {copy.careerObjective}
             <textarea
               rows={6}
               value={resume.objective}
@@ -615,7 +889,7 @@ function App() {
           </label>
 
           <label>
-            Degree (line break with Enter)
+            {copy.degree}
             <textarea
               rows={4}
               value={resume.degree}
@@ -624,7 +898,7 @@ function App() {
           </label>
 
           <label>
-            School
+            {copy.school}
             <textarea
               rows={4}
               value={resume.school}
@@ -633,7 +907,7 @@ function App() {
           </label>
 
           <label className="span-2">
-            Education period
+            {copy.educationPeriod}
             <input
               value={resume.educationPeriod}
               onChange={(event) =>
@@ -643,7 +917,7 @@ function App() {
           </label>
 
           <label>
-            Education address
+            {copy.educationAddress}
             <textarea
               rows={3}
               value={resume.educationAddress}
@@ -654,7 +928,7 @@ function App() {
           </label>
 
           <label className="span-2">
-            Skills (one per line)
+            {copy.skills}
             <textarea
               rows={7}
               value={resume.skills}
@@ -665,13 +939,13 @@ function App() {
 
         <section className="experience-editor">
           <div className="experience-editor-header">
-            <h2>Work Experience</h2>
+            <h2>{copy.workExperience}</h2>
             <button
               className="experience-action-button"
               type="button"
               onClick={addExperience}
             >
-              + Add Section
+              {copy.addSection}
             </button>
           </div>
           {resume.experiences.map((experience, index) => (
@@ -680,18 +954,20 @@ function App() {
               key={`${experience.role}-${index}`}
             >
               <div className="experience-card-header">
-                <p>Section {index + 1}</p>
+                <p>
+                  {copy.section} {index + 1}
+                </p>
                 <button
                   className="experience-action-button remove"
                   type="button"
                   onClick={() => removeExperience(index)}
                 >
-                  - Remove
+                  {copy.remove}
                 </button>
               </div>
 
               <label>
-                Role
+                {copy.role}
                 <input
                   value={experience.role}
                   onChange={(event) =>
@@ -701,7 +977,7 @@ function App() {
               </label>
 
               <label>
-                Company
+                {copy.company}
                 <input
                   value={experience.company}
                   onChange={(event) =>
@@ -711,7 +987,7 @@ function App() {
               </label>
 
               <label>
-                Location
+                {copy.location}
                 <input
                   value={experience.location}
                   onChange={(event) =>
@@ -721,7 +997,7 @@ function App() {
               </label>
 
               <label>
-                Period
+                {copy.period}
                 <input
                   value={experience.period}
                   onChange={(event) =>
@@ -731,7 +1007,7 @@ function App() {
               </label>
 
               <label>
-                Highlights (one bullet per line)
+                {copy.highlights}
                 <textarea
                   rows={5}
                   value={experience.highlights}
@@ -750,7 +1026,7 @@ function App() {
           onClick={() => void saveCurrentResumeAsDefault()}
           disabled={isSavingDefault}
         >
-          {isSavingDefault ? "Saving Default..." : "Save To Default"}
+          {isSavingDefault ? copy.savingDefault : copy.saveDefault}
         </button>
 
         <button
@@ -758,13 +1034,14 @@ function App() {
           onClick={exportPdf}
           disabled={isExporting}
         >
-          {isExporting ? "Preparing PDF..." : "Print / Save Resume PDF"}
+          {isExporting ? copy.preparingPdf : copy.exportPdf}
         </button>
       </aside>
 
       <main className="preview-stage">
         <div
           className={`resume-paper ${isExporting ? "exporting" : ""}`.trim()}
+          data-template-language={resume.templateLanguage}
           ref={resumeRef}
         >
           <header className="resume-header">
@@ -775,7 +1052,7 @@ function App() {
           <section className="resume-grid">
             <aside className="left-column">
               <section>
-                <h3>Contact</h3>
+                <h3>{copy.contact}</h3>
                 <ul className="plain-list contact-list">
                   <li className="contact-item">
                     <span className="contact-text">{resume.email}</span>
@@ -812,7 +1089,7 @@ function App() {
               </section>
 
               <section>
-                <h3>Education</h3>
+                <h3>{copy.education}</h3>
                 <div className="education-box">
                   {educationTitle ? (
                     <p className="education-title">{educationTitle}</p>
@@ -837,7 +1114,7 @@ function App() {
               </section>
 
               <section>
-                <h3>Skills</h3>
+                <h3>{copy.skillsHeading}</h3>
                 <ul className="plain-list skills-list">
                   {skillList.map((skill) => (
                     <li key={skill}>{skill}</li>
@@ -848,12 +1125,12 @@ function App() {
 
             <section className="right-column">
               <section>
-                <h3>Career Objective</h3>
+                <h3>{copy.careerObjective}</h3>
                 <p className="objective-text">{resume.objective}</p>
               </section>
 
               <section>
-                <h3>Work Experience</h3>
+                <h3>{copy.workExperience}</h3>
                 <div className="experience-list">
                   {resume.experiences.map((experience, index) => (
                     <article key={`preview-${experience.role}-${index}`}>

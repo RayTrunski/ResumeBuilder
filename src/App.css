@@ -124,6 +124,7 @@
 }
 
 .editor-panel input,
+.editor-panel select,
 .editor-panel textarea {
   border: 1px solid #cad1dc;
   border-radius: 8px;
@@ -139,6 +140,7 @@
 }
 
 .editor-panel input:focus,
+.editor-panel select:focus,
 .editor-panel textarea:focus {
   outline: 2px solid rgba(221, 149, 50, 0.4);
   border-color: #dd9532;
@@ -315,7 +317,6 @@
   max-width: 620px;
   font-size: clamp(1.2rem, 3vw, 2.15rem);
   letter-spacing: 0.06em;
-  text-transform: uppercase;
   font-family: 'Sora', sans-serif;
   line-height: 1.1;
 }
@@ -522,7 +523,7 @@
 }
 
 @page {
-  size: A4 portrait;
+  size: 8.5in 11in;
   margin: 0;
 }
 
@@ -555,13 +556,14 @@
   }
 
   .resume-paper {
-    width: 210mm !important;
-    min-height: 297mm !important;
-    height: 297mm !important;
+    width: 8.5in !important;
+    min-height: 11in !important;
+    height: 11in !important;
     margin: 0 auto;
     border: none !important;
     box-shadow: none !important;
     animation: none !important;
+    aspect-ratio: auto;
     break-inside: avoid-page;
     display: flex;
     flex-direction: column;
@@ -686,6 +688,87 @@
   .experience-list ul {
     margin-top: 6px !important;
     padding-left: 16px !important;
+  }
+
+  .resume-paper[data-template-language="es"] .resume-header {
+    padding: 20px 18px 8px !important;
+  }
+
+  .resume-paper[data-template-language="es"] .name-box {
+    margin-bottom: 6px !important;
+    padding: 7px 10px !important;
+    max-width: 540px;
+    font-size: 1.55rem !important;
+    letter-spacing: 0.04em;
+  }
+
+  .resume-paper[data-template-language="es"] .title-text {
+    font-size: 0.96rem !important;
+  }
+
+  .resume-paper[data-template-language="es"] .left-column {
+    width: 28%;
+    flex: 0 0 28%;
+    padding: 14px 10px 16px !important;
+  }
+
+  .resume-paper[data-template-language="es"] .right-column {
+    width: 72%;
+    flex: 0 0 72%;
+    padding: 14px 14px 16px !important;
+  }
+
+  .resume-paper[data-template-language="es"] .left-column section,
+  .resume-paper[data-template-language="es"] .right-column section {
+    margin-bottom: 10px !important;
+  }
+
+  .resume-paper[data-template-language="es"] h3 {
+    margin-bottom: 6px !important;
+    font-size: 0.9rem !important;
+  }
+
+  .resume-paper[data-template-language="es"] h4 {
+    font-size: 0.92rem !important;
+  }
+
+  .resume-paper[data-template-language="es"] .contact-list li,
+  .resume-paper[data-template-language="es"] .skills-list li,
+  .resume-paper[data-template-language="es"] .experience-list li,
+  .resume-paper[data-template-language="es"] .objective-text,
+  .resume-paper[data-template-language="es"] .education-info,
+  .resume-paper[data-template-language="es"] .education-address,
+  .resume-paper[data-template-language="es"] .company-line,
+  .resume-paper[data-template-language="es"] .period-line {
+    font-size: 0.78rem !important;
+    line-height: 1.16 !important;
+  }
+
+  .resume-paper[data-template-language="es"] .contact-list li,
+  .resume-paper[data-template-language="es"] .skills-list li,
+  .resume-paper[data-template-language="es"] .experience-list li,
+  .resume-paper[data-template-language="es"] .education-info,
+  .resume-paper[data-template-language="es"] .education-address {
+    margin-bottom: 2px !important;
+  }
+
+  .resume-paper[data-template-language="es"] .education-box {
+    padding: 8px 7px !important;
+  }
+
+  .resume-paper[data-template-language="es"] .education-title {
+    margin-bottom: 6px !important;
+    font-size: 0.88rem !important;
+    line-height: 1.15 !important;
+  }
+
+  .resume-paper[data-template-language="es"] .experience-list article {
+    margin-bottom: 10px !important;
+  }
+
+  .resume-paper[data-template-language="es"] .experience-list ul {
+    margin-top: 4px !important;
+    padding-left: 14px !important;
   }
 }
 
